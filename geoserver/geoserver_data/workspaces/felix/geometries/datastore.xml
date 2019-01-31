@@ -1,0 +1,15 @@
+<dataStore>
+  <id>DataStoreInfoImpl-61dd43ee:167ad379004:-7fe1</id>
+  <name>geometries</name>
+  <type>MongoDB</type>
+  <enabled>true</enabled>
+  <workspace>
+    <id>WorkspaceInfoImpl-61dd43ee:167ad379004:-7fe3</id>
+  </workspace>
+  <connectionParameters>
+    <entry key="data_store">mongodb://mongodb/geometries</entry>
+    <entry key="namespace">felix</entry>
+    <entry key="schema_store">file:///var/geoserver/schemas</entry>
+  </connectionParameters>
+  <__default>false</__default>
+</dataStore>

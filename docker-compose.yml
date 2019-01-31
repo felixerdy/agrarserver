@@ -1,0 +1,16 @@
+version: "3"
+services:
+  geoserver:
+    build: ./geoserver
+    ports:
+      - 8080:8080
+  web:
+    build: ./web
+    ports:
+      - 8000:1234
+  mongodb:
+    image: "mongo:latest"
+  mongo-seed:
+    build: ./mongo-seed
+    links:
+      - mongodb
