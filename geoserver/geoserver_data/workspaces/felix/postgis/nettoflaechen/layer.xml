@@ -1,0 +1,15 @@
+<layer>
+  <name>nettoflaechen</name>
+  <id>LayerInfoImpl-4e417751:169965513f4:-7ff9</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-61dd43ee:167ad379004:-7ffe</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-4e417751:169965513f4:-7ffa</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

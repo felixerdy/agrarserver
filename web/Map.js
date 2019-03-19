@@ -66,7 +66,9 @@ const geometryInsertXML = coordinateList => `<?xml version="1.0"?>
 </wfs:Transaction>`;
 
 export default () => {
-  var map = L.map("map", { drawControl: true }).setView([51.505, 9], 6);
+  var map = L.map("map", {
+    drawControl: true
+  }).setView([51.505, 9], 6);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
@@ -78,6 +80,33 @@ export default () => {
   )
     .then(res => res.json())
     .then(data => L.geoJSON(data).addTo(map));
+
+  L.tileLayer
+    .wms(`${baseUrl}/geoserver/felix/wms?`, {
+      layers: "felix:nettoflaechen",
+      transparent: true,
+      format: "image/png"
+    })
+    .addTo(map);
+
+  L.tileLayer
+    .wms(`${baseUrl}/geoserver/felix/wms?`, {
+      layers: "felix:landschaftselemente",
+      transparent: true,
+      format: "image/png"
+    })
+    .addTo(map);
+  // fetch(
+  //   `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:landschaftselemente&outputFormat=application/json`
+  // )
+  //   .then(res => res.json())
+  //   .then(data => L.geoJSON(data, { style: { color: "green" } }).addTo(map));
+
+  // fetch(
+  //   `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:nettoflaechen&outputFormat=application/json`
+  // )
+  //   .then(res => res.json())
+  //   .then(data => L.geoJSON(data, { style: { color: "red" } }).addTo(map));
 
   map.on(L.Draw.Event.CREATED, e => {
     var geometry = e.layer.toGeoJSON();
