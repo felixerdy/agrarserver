@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl-61dd43ee:167ad379004:-7fdf</id>
+  <id>LayerInfoImpl-435f32a8:16995ff33a7:-7ff9</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>felix:borders</name>
+  <name>felix:bundeslaender</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
@@ -26,7 +26,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>generic</defaultStyle>
+      <defaultStyle>polygon</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>

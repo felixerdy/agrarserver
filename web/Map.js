@@ -74,16 +74,10 @@ export default () => {
   }).addTo(map);
 
   fetch(
-    `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:parcels&outputFormat=application/json`
+    `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:bundeslaender&outputFormat=application/json`
   )
     .then(res => res.json())
     .then(data => L.geoJSON(data).addTo(map));
-
-  fetch(
-    `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:borders&outputFormat=application/json`
-  )
-    .then(res => res.json())
-    .then(data => L.geoJSON(data, { style: { color: "grey" } }).addTo(map));
 
   map.on(L.Draw.Event.CREATED, e => {
     var geometry = e.layer.toGeoJSON();

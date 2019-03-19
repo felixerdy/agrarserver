@@ -1,12 +1,12 @@
 <layer>
-  <name>borders</name>
-  <id>LayerInfoImpl-61dd43ee:167ad379004:-7fdf</id>
+  <name>bundeslaender</name>
+  <id>LayerInfoImpl-435f32a8:16995ff33a7:-7ff9</id>
   <type>VECTOR</type>
   <defaultStyle>
-    <id>StyleInfoImpl-61dd43ee:167ad379004:-7ffc</id>
+    <id>StyleInfoImpl-61dd43ee:167ad379004:-7ffe</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-61dd43ee:167ad379004:-7fe0</id>
+    <id>FeatureTypeInfoImpl-435f32a8:16995ff33a7:-7ffa</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>

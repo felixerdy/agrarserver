@@ -1,4 +1,4 @@
-FROM terrestris/geoserver:latest
+FROM terrestris/geoserver:2.15.0
 
 ARG GS_DATA_PATH=./geoserver_data/
 ARG CUSTOM_WEB_XML_PATH=./custom_web_xml/

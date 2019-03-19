@@ -8,9 +8,7 @@ services:
     build: ./web
     ports:
       - 8000:1234
-  mongodb:
-    image: "mongo:latest"
-  mongo-seed:
-    build: ./mongo-seed
-    links:
-      - mongodb
+  postgis:
+    image: mdillon/postgis:11-alpine
+  postgis-seed:
+    build: ./postgis-seed
