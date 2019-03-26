@@ -1,3 +1,7 @@
 web/dist
 web/.cache
 web/node_modules
+
+gateway/__pycache__
+
+postgis-seed/postgis_data/antragsdaten/*

@@ -13,6 +13,9 @@ L.Icon.Default.mergeOptions({
 });
 
 const baseUrl = "http://localhost:8080";
+const flaskURL = "http://localhost:5000";
+
+const gatewayURL = "http://localhost:5000";
 
 const geometryIntersectXML = parameter => `<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
 <ows:Identifier>gs:IdentifyOverlaps</ows:Identifier>
@@ -66,7 +69,9 @@ const geometryInsertXML = coordinateList => `<?xml version="1.0"?>
 </wfs:Transaction>`;
 
 export default () => {
-  var map = L.map("map", { drawControl: true }).setView([51.505, 9], 6);
+  var map = L.map("map", {
+    drawControl: true
+  }).setView([51.505, 9], 6);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
@@ -74,14 +79,41 @@ export default () => {
   }).addTo(map);
 
   fetch(
-    `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:bundeslaender&outputFormat=application/json`
+    `${flaskURL}/api/bundeslaender`
   )
     .then(res => res.json())
     .then(data => L.geoJSON(data).addTo(map));
 
+  L.tileLayer
+    .wms(`${baseUrl}/geoserver/felix/wms?`, {
+      layers: "felix:nettoflaechen",
+      transparent: true,
+      format: "image/png"
+    })
+    .addTo(map);
+
+  L.tileLayer
+    .wms(`${baseUrl}/geoserver/felix/wms?`, {
+      layers: "felix:landschaftselemente",
+      transparent: true,
+      format: "image/png"
+    })
+    .addTo(map);
+  // fetch(
+  //   `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:landschaftselemente&outputFormat=application/json`
+  // )
+  //   .then(res => res.json())
+  //   .then(data => L.geoJSON(data, { style: { color: "green" } }).addTo(map));
+
+  // fetch(
+  //   `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:nettoflaechen&outputFormat=application/json`
+  // )
+  //   .then(res => res.json())
+  //   .then(data => L.geoJSON(data, { style: { color: "red" } }).addTo(map));
+
   map.on(L.Draw.Event.CREATED, e => {
     var geometry = e.layer.toGeoJSON();
-
+    console.log(geometry)
     fetch(`${baseUrl}/geoserver/wps`, {
       method: "POST",
       headers: {
