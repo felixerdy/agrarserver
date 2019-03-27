@@ -21,7 +21,7 @@ SAMPLE_TYPE_NAME = 'nettoflaechen'
 SAMPLE_POS_LIST = '5.527008 51.679171 5.527008 52.17188 8.549622 52.17188 8.549622 52.679171 5.527008 51.679171'
 
 
-def getXMLBody(typeName, posList):
+def getXMLBody(typeName, valueReference, posList):
     return f"""<?xml version="1.0"?>
         <wfs:Transaction
         version="2.0.0"
@@ -36,7 +36,7 @@ def getXMLBody(typeName, posList):
                             http://schemas.opengis.net/gml/3.2.1/gml.xsd">
         <wfs:Insert>
             <{typeName}>
-                <geom>
+                <{valueReference}>
                     <gml:MultiSurface>
                         <gml:surfaceMembers>
                             <gml:Polygon>
@@ -50,7 +50,7 @@ def getXMLBody(typeName, posList):
                                 </gml:Polygon>
                         </gml:surfaceMembers>
                     </gml:MultiSurface>
-                </geom>
+                </{valueReference}>
             </{typeName}>
             <!-- you can insert multiple features if you wish-->
         </wfs:Insert>
@@ -135,7 +135,8 @@ def insertGeometry():
     REVERSED_POLYGON_COORDS_JOINED = ' '.join(
         [str(x) for x in REVERSED_POLYGON_COORDS])
 
-    data = getXMLBody(TYPE_NAME, REVERSED_POLYGON_COORDS_JOINED)
+    data = getXMLBody(TYPE_NAME, VALUE_REFERENCE,
+                      REVERSED_POLYGON_COORDS_JOINED)
     # set what your server accepts
     headers = {'Content-Type': 'application/xml',
                'Authorization': f'Basic {AUTH}'}
