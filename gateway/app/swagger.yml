@@ -29,13 +29,6 @@ paths:
       responses:
         200:
           description: "Successful read list of german bundelaender"
-  /wfs/checkOverlap:
-    get:
-      operationId: "wfs.checkOverlap"
-      summary: "Checks overlap"
-      responses:
-        200:
-          description: "Successful read list of german bundelaender"
   /wfs/bundeslandContains:
     post:
       operationId: "wfs.bundeslandContains"

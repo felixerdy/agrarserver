@@ -84,7 +84,7 @@ export default () => {
     .then(res => res.json())
     .then(data => L.geoJSON(data).addTo(map));
 
-  L.tileLayer
+  const nettoflaechen = L.tileLayer
     .wms(`${baseUrl}/geoserver/felix/wms?`, {
       layers: "felix:nettoflaechen",
       transparent: true,
@@ -99,75 +99,51 @@ export default () => {
       format: "image/png"
     })
     .addTo(map);
-  // fetch(
-  //   `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:landschaftselemente&outputFormat=application/json`
-  // )
-  //   .then(res => res.json())
-  //   .then(data => L.geoJSON(data, { style: { color: "green" } }).addTo(map));
 
-  // fetch(
-  //   `${baseUrl}/geoserver/felix/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=felix:nettoflaechen&outputFormat=application/json`
-  // )
-  //   .then(res => res.json())
-  //   .then(data => L.geoJSON(data, { style: { color: "red" } }).addTo(map));
+  var notPermittedStyle = {
+    color: "red",
+    weight: 5,
+    opacity: 0.65
+  };
+  var notPermittedLayer = L.geoJSON(null, {
+    style: notPermittedStyle
+  }).addTo(map);
 
   map.on(L.Draw.Event.CREATED, e => {
     var geometry = e.layer.toGeoJSON();
     console.log(geometry)
-    fetch(`${baseUrl}/geoserver/wps`, {
+    fetch(`${flaskURL}/api/wfs/overlappingPolygons`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/xml"
+        "Content-Type": "application/json"
       },
-      body: geometryIntersectXML(JSON.stringify(geometry.geometry))
+      body: JSON.stringify({
+        typeName: "nettoflaechen",
+        polygon: geometry
+      })
     })
-      .then(res => res.text())
+      .then(res => res.json())
       .then(data => {
-        try {
-          data = JSON.parse(data);
-        } catch (e) {
-          const content = new window.DOMParser()
-            .parseFromString(data, "text/xml")
-            .getElementsByTagName("wps:Status")[0].childNodes[0].childNodes[0]
-            .childNodes[0].childNodes[0].childNodes[0].nodeValue;
-          alert(content);
-          return null;
-        }
-        if (data == 0) {
-          var myStyle = {
-            color: "green",
-            weight: 5,
-            opacity: 0.65
-          };
-
-          L.geoJSON(geometry, {
-            style: myStyle
-          }).addTo(map);
-
-          console.log(geometry.geometry.coordinates[0].flat().join(" "));
-
-          fetch(`${baseUrl}/geoserver/wfs`, {
+        console.log(data)
+        notPermittedLayer.clearLayers()
+        if (data.numberMatched > 0) {
+          notPermittedLayer.addData(data)
+        } else {
+          fetch(`${flaskURL}/api/wfs/insertGeometry`, {
             method: "POST",
             headers: {
-              Authorization: `Basic ${btoa("admin:geoserver")}`,
-              "Content-Type": "application/xml"
+              "Content-Type": "application/json"
             },
-            body: geometryInsertXML(geometry.geometry.coordinates[0])
+            body: JSON.stringify({
+              typeName: "nettoflaechen",
+              polygon: geometry
+            })
           })
-            .then(res => res.text())
+            .then(res => res.json())
             .then(data => {
-              console.log(data);
-            });
-        } else {
-          var myStyle = {
-            color: "red",
-            weight: 5,
-            opacity: 0.65
-          };
-
-          L.geoJSON(geometry, {
-            style: myStyle
-          }).addTo(map);
+              console.log(data)
+              nettoflaechen.setParams({ fake: Date.now() }, false)
+            })
         }
       })
       .catch(error => {

@@ -3,9 +3,16 @@ import requests
 import base64
 import urllib.parse
 import json
+import os
+import xmltodict
 
 
-BASE_URL = 'http://localhost:8080/geoserver/wfs'
+GEOSERVER_HOST = os.getenv('GEOSERVER_HOST', "localhost")
+GEOSERVER_PORT = os.getenv('GEOSERVER_PORT', "8080")
+
+BASE_URL = f'http://{GEOSERVER_HOST}:{GEOSERVER_PORT}/geoserver/wfs'
+
+# BASE_URL = 'http://localhost:8080/geoserver/wfs'
 data_string = 'admin:geoserver'
 data_bytes = data_string.encode("utf-8")
 AUTH = base64.b64encode(data_bytes).decode("utf-8")
@@ -14,7 +21,7 @@ SAMPLE_TYPE_NAME = 'nettoflaechen'
 SAMPLE_POS_LIST = '5.527008 51.679171 5.527008 52.17188 8.549622 52.17188 8.549622 52.679171 5.527008 51.679171'
 
 
-def getXMLBody(typeName, posList, antragsjah):
+def getXMLBody(typeName, posList):
     return f"""<?xml version="1.0"?>
         <wfs:Transaction
         version="2.0.0"
@@ -34,17 +41,16 @@ def getXMLBody(typeName, posList, antragsjah):
                         <gml:surfaceMembers>
                             <gml:Polygon>
                                     <gml:exterior>
-                                            <gml:LinearRing>
-                                                <gml:posList>
-                                                    {posList}
-                                                </gml:posList>
-                                            </gml:LinearRing>
+                                        <gml:LinearRing>
+                                            <gml:posList>
+                                                {posList}
+                                            </gml:posList>
+                                        </gml:LinearRing>
                                     </gml:exterior>
                                 </gml:Polygon>
                         </gml:surfaceMembers>
                     </gml:MultiSurface>
                 </geom>
-                <antragsjah>{antragsjah}</antragsjah>
             </{typeName}>
             <!-- you can insert multiple features if you wish-->
         </wfs:Insert>
@@ -92,16 +98,16 @@ def getOverlapXMLQuery(typeName, valueReference, posList):
                                 http://schemas.opengis.net/gml/3.2.1/gml.xsd">
             <wfs:Query typeNames="{typeName}">
                 <fes:Filter>
-                            <fes:Overlaps>
-                                    <fes:ValueReference>{valueReference}</fes:ValueReference>
-                                    <gml:Polygon>
-                                        <gml:exterior>
-                                            <gml:LinearRing>
-                                                <gml:posList>{posList}</gml:posList>
-                                            </gml:LinearRing>
-                                        </gml:exterior>
-                                    </gml:Polygon>
-                    </fes:Overlaps>
+                    <fes:Intersects>
+                        <fes:ValueReference>{valueReference}</fes:ValueReference>
+                        <gml:Polygon>
+                            <gml:exterior>
+                                <gml:LinearRing>
+                                    <gml:posList>{posList}</gml:posList>
+                                </gml:LinearRing>
+                            </gml:exterior>
+                        </gml:Polygon>
+                    </fes:Intersects>
                 </fes:Filter>
             </wfs:Query>
         </wfs:GetFeature>"""
@@ -114,40 +120,30 @@ def insertGeometry():
 
     :return:        sorted list of people
     """
-    data = getXMLBody(SAMPLE_TYPE_NAME, SAMPLE_POS_LIST, 2019)
+    # get request body data
+    TYPE_NAME = request.get_json().get('typeName', 'nettoflaechen')
+    VALUE_REFERENCE = request.get_json().get('valueReference', 'geom')
+    POLYGON = request.get_json().get('polygon')
+
+    print(POLYGON)
+
+    # reverse polygon coordinates and make a flat list
+    REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
+                               for y in x]
+
+    # stringify flattened list
+    REVERSED_POLYGON_COORDS_JOINED = ' '.join(
+        [str(x) for x in REVERSED_POLYGON_COORDS])
+
+    data = getXMLBody(TYPE_NAME, REVERSED_POLYGON_COORDS_JOINED)
     # set what your server accepts
     headers = {'Content-Type': 'application/xml',
                'Authorization': f'Basic {AUTH}'}
     r = requests.post(BASE_URL, data=data, headers=headers)
-    return json.loads(r.text)
 
+    dictResponse = xmltodict.parse(r.text)
 
-def checkOverlap():
-
-    TRIANGLE = '8.020019531249998 52.20760667286523 10.447998046875 52.234528294213646 9.426269531249998 54.03358633521085 8.020019531249998 52.20760667286523'
-
-    # URL = f"""{BASE_URL}?
-    #     &VERSION=1.0.0
-    #     &SERVICE=WFS
-    #     &REQUEST=GetFeature
-    #     &TYPENAME={SAMPLE_TYPE_NAME}
-    #     &Filter=<Filter>
-    #         <Overlaps>
-    #             <PropertyName>geom</PropertyName>
-    #             <gml:Polygon>
-    #                 <gml:outerBoundaryIs>
-    #                     <gml:LinearRing>
-    #                         <gml:posList>{TRIANGLE}</gml:posList>
-    #                     </gml:LinearRing>
-    #                 </gml:outerBoundaryIs>
-    #             </gml:Polygon>
-    #         </Overlaps>
-    #     </Filter>"""
-
-    URL = f'{BASE_URL}?&VERSION=1.0.0&SERVICE=WFS&REQUEST=GetFeature&TYPENAME={SAMPLE_TYPE_NAME}&Filter=<Filter><Overlaps><PropertyName>geom</PropertyName><gml:Polygon><gml:outerBoundaryIs><gml:LinearRing><gml:posList>{TRIANGLE}</gml:posList></gml:LinearRing></gml:outerBoundaryIs></gml:Polygon></Overlaps></Filter>'
-    PARSED_URL = urllib.parse.quote(URL)
-
-    return requests.get(URL).text
+    return json.loads(json.dumps(dictResponse, ensure_ascii=False))
 
 
 def bundeslandContains():
@@ -161,10 +157,28 @@ def bundeslandContains():
 
 
 def overlappingPolygons():
-    SAMPLE_OVERLAP = "52.138742 12.275731 52.138329 12.288587 52.132832 12.279584 52.138742 12.275731"
+    # get request body data
+    TYPE_NAME = request.get_json().get('typeName', 'nettoflaechen')
+    VALUE_REFERENCE = request.get_json().get('valueReference', 'geom')
+    POLYGON = request.get_json().get('polygon')
 
-    data = getOverlapXMLQuery("nettoflaechen", "geom", SAMPLE_OVERLAP)
+    print(POLYGON)
+
+    # reverse polygon coordinates and make a flat list
+    REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
+                               for y in list(reversed(x))]
+
+    # stringify flattened list
+    REVERSED_POLYGON_COORDS_JOINED = ' '.join(
+        [str(x) for x in REVERSED_POLYGON_COORDS])
+
+    # create GeoServer post body
+    data = getOverlapXMLQuery(TYPE_NAME, VALUE_REFERENCE,
+                              REVERSED_POLYGON_COORDS_JOINED)
     headers = {'Content-Type': 'application/xml',
                'Authorization': f'Basic {AUTH}'}
+
+    # send request to GeoServer and pipe results as response
     r = requests.post(BASE_URL, data=data, headers=headers)
+
     return json.loads(r.text)
