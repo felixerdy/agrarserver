@@ -1,18 +1,18 @@
 version: "3"
+
+networks:
+  agrarserver-main:
+    external: true
+  agrarserver-intern:
 services:
-  reverse-proxy:
-    image: traefik # The official Traefik docker image
-    command: --api --docker # Enables the web UI and tells Traefik to listen to docker
-    ports:
-      - "80:80"     # The HTTP port
-      - "8002:8080" # The Web UI (enabled by --api)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
   geoserver:
     build: ./geoserver
     labels:
       - "traefik.frontend.rule=Host:geoserver.${COMPOSE_PROJECT_NAME}.localhost"
       - "traefik.port=8080"
+    networks: 
+      - agrarserver-main
+      - agrarserver-intern
   web:
     build: 
       context: ./web
@@ -21,10 +21,16 @@ services:
       - GATEWAY_HOST=gateway.${COMPOSE_PROJECT_NAME}.localhost
     labels:
       - "traefik.frontend.rule=Host:web.${COMPOSE_PROJECT_NAME}.localhost"
+    networks: 
+      - agrarserver-main
   postgis:
     image: mdillon/postgis:11-alpine
+    networks: 
+      - agrarserver-intern
   postgis-seed:
     build: ./postgis-seed
+    networks:
+      - agrarserver-intern
   gateway:
     build: ./gateway
     labels:
@@ -32,9 +38,10 @@ services:
       - "traefik.port=5000"
     environment:
       - GEOSERVER_HOST=geoserver
+    networks: 
+      - agrarserver-main
   cadvisor:
     image: google/cadvisor:latest
-    container_name: cadvisor
     labels:
       - "traefik.frontend.rule=Host:cadvisor.${COMPOSE_PROJECT_NAME}.localhost"
     volumes:
@@ -42,4 +49,6 @@ services:
     - /var/run:/var/run:rw
     - /sys:/sys:ro
     - /var/lib/docker/:/var/lib/docker:ro
+    networks: 
+      - agrarserver-main
 
