@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 const baseUrl = "http://localhost:8080";
 const flaskURL = "http://localhost:5000";
 
-export default () => {
+const initMap = () => {
   var map = L.map("map").setView([51.505, 9], 6);
 
   var drawControl = new L.Control.Draw({
@@ -49,7 +49,7 @@ export default () => {
     })
     .addTo(map);
 
-  L.tileLayer
+  const landschaftselemente = L.tileLayer
     .wms(`${baseUrl}/geoserver/felix/wms?`, {
       layers: "felix:landschaftselemente",
       transparent: true,
@@ -107,4 +107,8 @@ export default () => {
         console.log(error);
       });
   });
+}
+
+export default () => {
+  initMap()
 };
