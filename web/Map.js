@@ -12,8 +12,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png")
 });
 
-const baseUrl = "http://localhost:8080";
-const flaskURL = "http://localhost:5000";
+const GEOSERVER_HOST = `http://${process.env.GEOSERVER_HOST}`
+const GATEWAY_HOST = `http://${process.env.GATEWAY_HOST}`
+
+// const GEOSERVER_HOST = `http://geoserver.brandenburg.localhost`
+// const GATEWAY_HOST = `http://gateway.brandenburg.localhost`
 
 const initMap = () => {
   var map = L.map("map").setView([51.505, 9], 6);
@@ -36,13 +39,13 @@ const initMap = () => {
   }).addTo(map);
 
   fetch(
-    `${flaskURL}/api/bundeslaender`
+    `${GATEWAY_HOST}/api/bundeslaender`
   )
     .then(res => res.json())
     .then(data => L.geoJSON(data).addTo(map));
 
   const nettoflaechen = L.tileLayer
-    .wms(`${baseUrl}/geoserver/felix/wms?`, {
+    .wms(`${GEOSERVER_HOST}/geoserver/felix/wms?`, {
       layers: "felix:nettoflaechen",
       transparent: true,
       format: "image/png"
@@ -50,7 +53,7 @@ const initMap = () => {
     .addTo(map);
 
   const landschaftselemente = L.tileLayer
-    .wms(`${baseUrl}/geoserver/felix/wms?`, {
+    .wms(`${GEOSERVER_HOST}/geoserver/felix/wms?`, {
       layers: "felix:landschaftselemente",
       transparent: true,
       format: "image/png"
@@ -69,7 +72,7 @@ const initMap = () => {
   map.on(L.Draw.Event.CREATED, e => {
     var geometry = e.layer.toGeoJSON();
     console.log(geometry)
-    fetch(`${flaskURL}/api/wfs/overlappingPolygons`, {
+    fetch(`${GATEWAY_HOST}/api/wfs/overlappingPolygons`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -86,7 +89,7 @@ const initMap = () => {
         if (data.numberMatched > 0) {
           notPermittedLayer.addData(data)
         } else {
-          fetch(`${flaskURL}/api/wfs/insertGeometry`, {
+          fetch(`${GATEWAY_HOST}/api/wfs/insertGeometry`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
