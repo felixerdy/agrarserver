@@ -16,9 +16,19 @@ const baseUrl = "http://localhost:8080";
 const flaskURL = "http://localhost:5000";
 
 export default () => {
-  var map = L.map("map", {
-    drawControl: true
-  }).setView([51.505, 9], 6);
+  var map = L.map("map").setView([51.505, 9], 6);
+
+  var drawControl = new L.Control.Draw({
+    draw: {
+      rectangle: true,
+      polygon: true,
+      marker: false,
+      polyline: false,
+      circle: false,
+      circlemarker: false
+    }
+  });
+  map.addControl(drawControl);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
