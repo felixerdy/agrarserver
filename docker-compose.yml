@@ -1,29 +1,42 @@
 version: "3"
 services:
+  reverse-proxy:
+    image: traefik # The official Traefik docker image
+    command: --api --docker # Enables the web UI and tells Traefik to listen to docker
+    ports:
+      - "80:80"     # The HTTP port
+      - "8002:8080" # The Web UI (enabled by --api)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
   geoserver:
     build: ./geoserver
-    ports:
-      - 8080:8080
+    labels:
+      - "traefik.frontend.rule=Host:geoserver.${COMPOSE_PROJECT_NAME}.localhost"
+      - "traefik.port=8080"
   web:
-    build: ./web
-    ports:
-      - 8000:1234
+    build: 
+      context: ./web
+      args:
+      - GEOSERVER_HOST=geoserver.${COMPOSE_PROJECT_NAME}.localhost
+      - GATEWAY_HOST=gateway.${COMPOSE_PROJECT_NAME}.localhost
+    labels:
+      - "traefik.frontend.rule=Host:web.${COMPOSE_PROJECT_NAME}.localhost"
   postgis:
     image: mdillon/postgis:11-alpine
   postgis-seed:
     build: ./postgis-seed
   gateway:
     build: ./gateway
-    ports: 
-      - 5000:5000
+    labels:
+      - "traefik.frontend.rule=Host:gateway.${COMPOSE_PROJECT_NAME}.localhost"
+      - "traefik.port=5000"
     environment:
       - GEOSERVER_HOST=geoserver
-      - GEOSERVER_PORT=8080
   cadvisor:
     image: google/cadvisor:latest
     container_name: cadvisor
-    ports:
-    - 8081:8080
+    labels:
+      - "traefik.frontend.rule=Host:cadvisor.${COMPOSE_PROJECT_NAME}.localhost"
     volumes:
     - /:/rootfs:ro
     - /var/run:/var/run:rw
