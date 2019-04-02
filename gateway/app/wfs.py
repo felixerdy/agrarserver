@@ -125,8 +125,6 @@ def insertGeometry():
     VALUE_REFERENCE = request.get_json().get('valueReference', 'geom')
     POLYGON = request.get_json().get('polygon')
 
-    print(POLYGON)
-
     # reverse polygon coordinates and make a flat list
     REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
                                for y in x]
