@@ -52,14 +52,6 @@ const initMap = () => {
     })
     .addTo(map);
 
-  const landschaftselemente = L.tileLayer
-    .wms(`${GEOSERVER_HOST}/geoserver/felix/wms?`, {
-      layers: "felix:landschaftselemente",
-      transparent: true,
-      format: "image/png"
-    })
-    .addTo(map);
-
   var notPermittedStyle = {
     color: "red",
     weight: 5,
