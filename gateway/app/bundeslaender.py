@@ -2,7 +2,7 @@ from requests import get
 import os
 
 GEOSERVER_HOST = os.getenv('GEOSERVER_HOST', "localhost")
-GEOSERVER_PORT = os.getenv('GEOSERVER_PORT', "8080")
+GEOSERVER_PORT = os.getenv('GEOSERVER_PORT', '8080')
 
 BASE_URL = f'http://{GEOSERVER_HOST}:{GEOSERVER_PORT}/geoserver/felix/ows?'
 WFS_TYPE_NAME = 'felix:bundeslaender'
@@ -16,5 +16,5 @@ def read():
 
     :return:        sorted list of people
     """
-
+    # return get(f'{BASE_URL}{WFS_QUERY}', headers={'Host': f'{GEOSERVER_HOST}'}).json()
     return get(f'{BASE_URL}{WFS_QUERY}').json()

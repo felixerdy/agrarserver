@@ -5,8 +5,9 @@ info:
   title: Swagger REST Article
 consumes:
   - "application/json"
-produces:
-  - "application/json"
+# produces:
+  # - "application/json"
+  # - "image/png"
 
 basePath: "/api"
 
@@ -19,6 +20,8 @@ paths:
         - "Bundeslaender"
       summary: "Bundeslaender of Germany"
       description: "Returns list of german bundeslaender"
+      produces:
+        - "application/json"
       responses:
         200:
           description: "Successful read list of german bundelaender"
@@ -26,6 +29,8 @@ paths:
     post:
       operationId: "wfs.insertGeometry"
       summary: "Inserts a Geometry"
+      produces:
+        - "application/json"
       responses:
         200:
           description: "Successful read list of german bundelaender"
@@ -33,6 +38,8 @@ paths:
     post:
       operationId: "wfs.bundeslandContains"
       summary: "Inserts a Geometry"
+      produces:
+        - "application/json"
       responses:
         200:
           description: "Successful got containing Bundesland"
@@ -40,6 +47,22 @@ paths:
     post:
       operationId: "wfs.overlappingPolygons"
       summary: "Returns overlapping Polygons"
+      produces:
+        - "application/json"
       responses:
         200:
           description: "Successgully retured overlapping polygons"
+  /wms/nettoflaechen:
+    get:
+      operationId: "wms.read"
+      tags:
+        - "WMS"
+      summary: "WMS of nettoflachen"
+      description: "Returns WMS of nettoflaechen"
+      produces:
+        - "image/png"
+      responses:
+        200:
+          description: OK
+          schema:
+            type: file

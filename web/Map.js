@@ -45,7 +45,7 @@ const initMap = () => {
     .then(data => L.geoJSON(data).addTo(map));
 
   const nettoflaechen = L.tileLayer
-    .wms(`${GEOSERVER_HOST}/geoserver/felix/wms?`, {
+    .wms(`${GATEWAY_HOST}/api/wms/nettoflaechen?`, {
       layers: "felix:nettoflaechen",
       transparent: true,
       format: "image/png"

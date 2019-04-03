@@ -8,17 +8,15 @@ import xmltodict
 
 
 GEOSERVER_HOST = os.getenv('GEOSERVER_HOST', "localhost")
-GEOSERVER_PORT = os.getenv('GEOSERVER_PORT', "8080")
+GEOSERVER_PORT = os.getenv('GEOSERVER_PORT', '8080')
+
 
 BASE_URL = f'http://{GEOSERVER_HOST}:{GEOSERVER_PORT}/geoserver/wfs'
 
-# BASE_URL = 'http://localhost:8080/geoserver/wfs'
+
 data_string = 'admin:geoserver'
 data_bytes = data_string.encode("utf-8")
 AUTH = base64.b64encode(data_bytes).decode("utf-8")
-
-SAMPLE_TYPE_NAME = 'nettoflaechen'
-SAMPLE_POS_LIST = '5.527008 51.679171 5.527008 52.17188 8.549622 52.17188 8.549622 52.679171 5.527008 51.679171'
 
 
 def getXMLBody(typeName, valueReference, posList):

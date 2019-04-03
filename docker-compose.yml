@@ -11,7 +11,6 @@ services:
       - "traefik.frontend.rule=Host:geoserver.${COMPOSE_PROJECT_NAME}.localhost"
       - "traefik.port=8080"
     networks: 
-      - agrarserver-main
       - agrarserver-intern
   web:
     build: 
@@ -38,8 +37,10 @@ services:
       - "traefik.port=5000"
     environment:
       - GEOSERVER_HOST=geoserver
+      - GEOSERVER_PORT=8080
     networks: 
       - agrarserver-main
+      - agrarserver-intern
   cadvisor:
     image: google/cadvisor:latest
     labels:
