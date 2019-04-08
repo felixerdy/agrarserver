@@ -6,15 +6,16 @@ ARG GATEWAY_HOST
 ENV GEOSERVER_HOST $GEOSERVER_HOST
 ENV GATEWAY_HOST $GATEWAY_HOST
 
-# COPY createEnvFile.sh .
-# RUN chmod 755 createEnvFile.sh && ./createEnvFile.sh
-# package json
-# yarn lock
-# yarn install pure lockfile
+COPY createEnvFile.sh ./
+RUN chmod 755 createEnvFile.sh && ./createEnvFile.sh
+
+COPY package.json ./
+COPY yarn.lock ./
+
+RUN yarn install --production --pure-lockfile
 
 COPY . .
-RUN chmod 755 createEnvFile.sh && ./createEnvFile.sh
-RUN yarn install
+
 RUN yarn global add serve
 
 RUN yarn build
