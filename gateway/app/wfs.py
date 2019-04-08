@@ -225,7 +225,7 @@ def insertGeometry():
         return {
             "error": "outsideOfState",
             "data": STATE,
-            "postResponse": postResponse
+            "postResponse": json.loads(postResponse)
         }
 
     # polygon is in this state, now check for overlaps
