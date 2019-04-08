@@ -6,3 +6,4 @@ web/.env
 __pycache__
 
 postgis-seed/postgis_data/antragsdaten/*
+!postgis-seed/postgis_data/antragsdaten/Readme.md
