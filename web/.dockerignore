@@ -11,3 +11,5 @@ LICENSE
 
 .cache
 dist
+
+.env

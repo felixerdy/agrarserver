@@ -16,7 +16,6 @@ services:
     build: 
       context: ./web
       args:
-      - GEOSERVER_HOST=geoserver.${COMPOSE_PROJECT_NAME}.localhost
       - GATEWAY_HOST=gateway.${COMPOSE_PROJECT_NAME}.localhost
     labels:
       - "traefik.frontend.rule=Host:web.${COMPOSE_PROJECT_NAME}.localhost"

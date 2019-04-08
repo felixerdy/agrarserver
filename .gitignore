@@ -1,6 +1,7 @@
 web/dist
 web/.cache
 web/node_modules
+web/.env
 
 __pycache__
 
