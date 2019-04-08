@@ -1,9 +1,7 @@
 FROM node:alpine
 WORKDIR /usr/src/app
 
-ARG GEOSERVER_HOST
 ARG GATEWAY_HOST
-ENV GEOSERVER_HOST $GEOSERVER_HOST
 ENV GATEWAY_HOST $GATEWAY_HOST
 
 COPY createEnvFile.sh ./
@@ -14,7 +12,7 @@ COPY yarn.lock ./
 
 RUN yarn install --production --pure-lockfile
 
-COPY . .
+COPY src ./src
 
 RUN yarn global add serve
 
