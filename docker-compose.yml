@@ -7,9 +7,6 @@ networks:
 services:
   geoserver:
     build: ./geoserver
-    # labels:
-    #   - "traefik.frontend.rule=Host:geoserver.${COMPOSE_PROJECT_NAME}.localhost"
-    #   - "traefik.port=8080"
     networks: 
       - agrarserver-intern
   web:
