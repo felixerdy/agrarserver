@@ -54,7 +54,6 @@ const initMap = async () => {
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   })
 
-
   const myState = L.tileLayer
     .wms(`http://gateway.${GATEWAY_HOST.split('.')[1].toLowerCase()}.localhost/api/wms/nettoflaechen?`, {
       layers: "felix:nettoflaechen",
@@ -124,7 +123,17 @@ const initMap = async () => {
         if (data.error == "overlaps") {
           notPermittedLayer.addData(data.data)
         }
-
+        else if (data.error == 'outsideOfState') {
+          if (data.postResponse.error == 'overlaps') {
+            notPermittedLayer.addData(data.postResponse.data)
+          } else {
+            const stateName = data.data.features[0].properties.gen.toLowerCase()
+            map.eachLayer(layer => {
+              if (layer instanceof L.TileLayer && layer._url.includes(stateName))
+                layer.setParams({ fake: Date.now() }, false)
+            });
+          }
+        }
         else if (data['wfs:TransactionResponse']['wfs:TransactionSummary']['wfs:totalInserted'] == 1) {
           myState.setParams({ fake: Date.now() }, false)
         }
