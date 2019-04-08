@@ -64,7 +64,24 @@ const initMap = () => {
   map.on(L.Draw.Event.CREATED, e => {
     var geometry = e.layer.toGeoJSON();
     console.log(geometry)
-    fetch(`${GATEWAY_HOST}/api/wfs/overlappingPolygons`, {
+    // fetch(`${GATEWAY_HOST}/api/wfs/overlappingPolygons`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json"
+    //   },
+    //   body: JSON.stringify({
+    //     typeName: "nettoflaechen",
+    //     polygon: geometry
+    //   })
+    // })
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     console.log(data)
+    //     notPermittedLayer.clearLayers()
+    //     if (data.numberMatched > 0) {
+    //       notPermittedLayer.addData(data)
+    //     } else {
+    fetch(`${GATEWAY_HOST}/api/wfs/insertGeometry`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -77,30 +94,13 @@ const initMap = () => {
       .then(res => res.json())
       .then(data => {
         console.log(data)
-        notPermittedLayer.clearLayers()
-        if (data.numberMatched > 0) {
-          notPermittedLayer.addData(data)
-        } else {
-          fetch(`${GATEWAY_HOST}/api/wfs/insertGeometry`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              typeName: "nettoflaechen",
-              polygon: geometry
-            })
-          })
-            .then(res => res.json())
-            .then(data => {
-              console.log(data)
-              nettoflaechen.setParams({ fake: Date.now() }, false)
-            })
-        }
+        nettoflaechen.setParams({ fake: Date.now() }, false)
       })
-      .catch(error => {
-        console.log(error);
-      });
+    //   }
+    // })
+    // .catch(error => {
+    //   console.log(error);
+    // });
   });
 }
 

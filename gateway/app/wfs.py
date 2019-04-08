@@ -5,6 +5,11 @@ import urllib.parse
 import json
 import os
 import xmltodict
+import sys
+
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+import urllib3
 
 
 GEOSERVER_HOST = os.getenv('GEOSERVER_HOST', "localhost")
@@ -111,6 +116,86 @@ def getOverlapXMLQuery(typeName, valueReference, posList):
         </wfs:GetFeature>"""
 
 
+def bundeslandContains():
+    # SAMPLE_NRW = "51.778564453125 7.415771484375 51.35009765625 7.415771484375  51.35009765625 7.767333984375 51.646728515625 7.767333984375 51.778564453125 7.415771484375"
+
+    VALUE_REFERENCE = request.get_json().get('valueReference', 'geom')
+    POLYGON = request.get_json().get('polygon')
+
+    # reverse polygon coordinates and make a flat list
+    REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
+                               for y in list(reversed(x))]
+
+    # stringify flattened list
+    REVERSED_POLYGON_COORDS_JOINED = ' '.join(
+        [str(x) for x in REVERSED_POLYGON_COORDS])
+
+    return getState(VALUE_REFERENCE, REVERSED_POLYGON_COORDS_JOINED)
+
+
+def getState(VALUE_REFERENCE, POLYGON):
+    data = getBundeslandContainsXMLQuery(
+        "bundeslaender", VALUE_REFERENCE, POLYGON)
+
+    headers = {'Content-Type': 'application/xml',
+               'Authorization': f'Basic {AUTH}'}
+    r = requests.post(BASE_URL, data=data, headers=headers)
+    return json.loads(r.text)
+
+
+def overlappingPolygons():
+    # get request body data
+    TYPE_NAME = request.get_json().get('typeName', 'nettoflaechen')
+    VALUE_REFERENCE = request.get_json().get('valueReference', 'geom')
+    POLYGON = request.get_json().get('polygon')
+
+    # reverse polygon coordinates and make a flat list
+    REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
+                               for y in list(reversed(x))]
+
+    # stringify flattened list
+    REVERSED_POLYGON_COORDS_JOINED = ' '.join(
+        [str(x) for x in REVERSED_POLYGON_COORDS])
+
+    return checkOverlap(TYPE_NAME, VALUE_REFERENCE, REVERSED_POLYGON_COORDS_JOINED)
+
+
+def checkOverlap(TYPE_NAME, VALUE_REFERENCE, REVERSED_POLYGON_COORDS_JOINED):
+    # create GeoServer post body
+    data = getOverlapXMLQuery(TYPE_NAME, VALUE_REFERENCE,
+                              REVERSED_POLYGON_COORDS_JOINED)
+    headers = {'Content-Type': 'application/xml',
+               'Authorization': f'Basic {AUTH}'}
+
+    # send request to GeoServer and pipe results as response
+    r = requests.post(BASE_URL, data=data, headers=headers)
+
+    return json.loads(r.text)
+
+
+def postToState(STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON):
+    data = {
+        "typeName": TYPE_NAME,
+        "valueReference": VALUE_REFERENCE,
+        "polygon": POLYGON
+    }
+    # # set what your server accepts
+    headers = {'Content-Type': 'application/json',
+               'Host': f'gateway.{STATE_NAME.lower()}.localhost'}
+
+    url = 'http://localhost/api/wfs/insertGeometry'  # Set destination URL here
+
+    # r = requests.post("http://localhost/api/wfs/insertGeometry",
+    #                   data=json.dumps(data), headers=headers)
+
+    http = urllib3.PoolManager()
+
+    r = http.request('POST', url,
+                     headers=headers,
+                     body=json.dumps(data))
+    print(r.read())
+
+
 def insertGeometry():
     """
     This function responds to a request for /api/people
@@ -125,14 +210,50 @@ def insertGeometry():
 
     # reverse polygon coordinates and make a flat list
     REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
-                               for y in x]
+                               for y in reversed(x)]
 
     # stringify flattened list
     REVERSED_POLYGON_COORDS_JOINED = ' '.join(
         [str(x) for x in REVERSED_POLYGON_COORDS])
 
+    # check whether polygon is in one distinct state
+    STATE = getState(VALUE_REFERENCE, REVERSED_POLYGON_COORDS_JOINED)
+    NUMBER_MATCHED = STATE['numberMatched']
+
+    if NUMBER_MATCHED == 0:
+        return "Polygon is either not in Germany or is located in two states"
+
+    STATE_NAME = next(iter(STATE['features']))['properties']['gen']
+    # check whether polygon is in state of this gateway
+    if STATE_NAME.lower() != os.getenv('STATE_NAME').lower():
+        postToState(STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON)
+        return {
+            "error": "outsideOfState",
+            "data": STATE
+        }
+
+    # polygon is in this state, now check for overlaps
+    OVERLAPS = checkOverlap(TYPE_NAME, VALUE_REFERENCE,
+                            REVERSED_POLYGON_COORDS_JOINED)
+
+    NUMBER_OF_OVERLAPS = int(OVERLAPS['numberMatched'])
+    if NUMBER_OF_OVERLAPS > 0:
+        return {
+            "error": "overlaps",
+            "data": OVERLAPS
+        }
+
+    # reverse polygon coordinates and make a flat list
+    NON_REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
+                                   for y in x]
+
+    # stringify flattened list
+    NON_REVERSED_POLYGON_COORDS_JOINED = ' '.join(
+        [str(x) for x in NON_REVERSED_POLYGON_COORDS])
+
+    # no overlaps --> insert to geoserver
     data = getXMLBody(TYPE_NAME, VALUE_REFERENCE,
-                      REVERSED_POLYGON_COORDS_JOINED)
+                      NON_REVERSED_POLYGON_COORDS_JOINED)
     # set what your server accepts
     headers = {'Content-Type': 'application/xml',
                'Authorization': f'Basic {AUTH}'}
@@ -141,41 +262,3 @@ def insertGeometry():
     dictResponse = xmltodict.parse(r.text)
 
     return json.loads(json.dumps(dictResponse, ensure_ascii=False))
-
-
-def bundeslandContains():
-    SAMPLE_NRW = "51.778564453125 7.415771484375 51.35009765625 7.415771484375  51.35009765625 7.767333984375 51.646728515625 7.767333984375 51.778564453125 7.415771484375"
-
-    data = getBundeslandContainsXMLQuery("bundeslaender", "geom", SAMPLE_NRW)
-    headers = {'Content-Type': 'application/xml',
-               'Authorization': f'Basic {AUTH}'}
-    r = requests.post(BASE_URL, data=data, headers=headers)
-    return json.loads(r.text)
-
-
-def overlappingPolygons():
-    # get request body data
-    TYPE_NAME = request.get_json().get('typeName', 'nettoflaechen')
-    VALUE_REFERENCE = request.get_json().get('valueReference', 'geom')
-    POLYGON = request.get_json().get('polygon')
-
-    print(POLYGON)
-
-    # reverse polygon coordinates and make a flat list
-    REVERSED_POLYGON_COORDS = [y for x in POLYGON.get('geometry').get('coordinates')[0]
-                               for y in list(reversed(x))]
-
-    # stringify flattened list
-    REVERSED_POLYGON_COORDS_JOINED = ' '.join(
-        [str(x) for x in REVERSED_POLYGON_COORDS])
-
-    # create GeoServer post body
-    data = getOverlapXMLQuery(TYPE_NAME, VALUE_REFERENCE,
-                              REVERSED_POLYGON_COORDS_JOINED)
-    headers = {'Content-Type': 'application/xml',
-               'Authorization': f'Basic {AUTH}'}
-
-    # send request to GeoServer and pipe results as response
-    r = requests.post(BASE_URL, data=data, headers=headers)
-
-    return json.loads(r.text)
