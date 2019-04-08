@@ -180,20 +180,14 @@ def postToState(STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON):
         "polygon": POLYGON
     }
     # # set what your server accepts
-    headers = {'Content-Type': 'application/json',
-               'Host': f'gateway.{STATE_NAME.lower()}.localhost'}
+    headers = {'Content-Type': 'application/json'}
 
-    url = 'http://localhost/api/wfs/insertGeometry'  # Set destination URL here
+    # Set destination URL here
+    url = f'http://{STATE_NAME.lower()}_gateway_1:5000/api/wfs/insertGeometry'
 
-    # r = requests.post("http://localhost/api/wfs/insertGeometry",
-    #                   data=json.dumps(data), headers=headers)
+    r = requests.post(url, data=json.dumps(data), headers=headers)
 
-    http = urllib3.PoolManager()
-
-    r = http.request('POST', url,
-                     headers=headers,
-                     body=json.dumps(data))
-    print(r.read())
+    return(r.text)
 
 
 def insertGeometry():
@@ -226,10 +220,12 @@ def insertGeometry():
     STATE_NAME = next(iter(STATE['features']))['properties']['gen']
     # check whether polygon is in state of this gateway
     if STATE_NAME.lower() != os.getenv('STATE_NAME').lower():
-        postToState(STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON)
+        postResponse = postToState(
+            STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON)
         return {
             "error": "outsideOfState",
-            "data": STATE
+            "data": STATE,
+            "postResponse": postResponse
         }
 
     # polygon is in this state, now check for overlaps
