@@ -180,12 +180,20 @@ def postToState(STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON):
         "polygon": POLYGON
     }
     # # set what your server accepts
-    headers = {'Content-Type': 'application/json'}
+    # headers = {'Content-Type': 'application/json'}
 
     # Set destination URL here
-    url = f'http://{STATE_NAME.lower()}_gateway_1:5000/api/wfs/insertGeometry'
+    # url = f'http://{STATE_NAME.lower()}_gateway_1:5000/api/wfs/insertGeometry'
 
+    # r = requests.post(url, data=json.dumps(data), headers=headers)
+
+    url = f'http://gateway.{STATE_NAME}/api/wfs/insertGeometry'
+    headers = {'Content-Type': 'application/json'}
     r = requests.post(url, data=json.dumps(data), headers=headers)
+    # http = urllib3.PoolManager()
+    # r = http.request('POST', url,
+    #                  headers=headers,
+    #                  body=json.dumps(data))
 
     return(r.text)
 
