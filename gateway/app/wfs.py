@@ -13,7 +13,7 @@ import urllib3
 import functools
 import urllib3
 
-
+# Fix uppercase URL --> https://stackoverflow.com/a/55613184/5660646
 def _custom_key_normalizer(key_class, request_context):
     """
     Create a pool key out of a request context dictionary.
