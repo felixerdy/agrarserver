@@ -22,4 +22,4 @@ PostGIS seed will print something like `postgis-seed_1  | Postgres seed is done.
 You can now visit e.g. http://web.Nordrhein-Westfalen.localhost and see all parcels. You can insert polygons or rectangles. Additionally, you can enable layers of other states and see its parcels when the according server is running. You can also insert geometries in other states.
 
 ### Scale
-In order to scale your services you can run `OMPOSE_PROJECT_NAME=Nordrhein-Westfalen docker-compose scale gateway=5` to have 5 running instances of the gateway service.
+In order to scale your services you can run `COMPOSE_PROJECT_NAME=Nordrhein-Westfalen docker-compose scale gateway=5` to have 5 running instances of the gateway service.
