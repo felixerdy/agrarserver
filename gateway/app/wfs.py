@@ -1,5 +1,4 @@
 from flask import request
-import requests
 import base64
 import urllib.parse
 import json
@@ -11,6 +10,61 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import urllib3
 
+import functools
+import urllib3
+
+
+def _custom_key_normalizer(key_class, request_context):
+    """
+    Create a pool key out of a request context dictionary.
+    According to RFC 3986, both the scheme and host are case-insensitive.
+    Therefore, this function normalizes both before constructing the pool
+    key for an HTTPS request. If you wish to change this behaviour, provide
+    alternate callables to ``key_fn_by_scheme``.
+    :param key_class:
+        The class to use when constructing the key. This should be a namedtuple
+        with the ``scheme`` and ``host`` keys at a minimum.
+    :type  key_class: namedtuple
+    :param request_context:
+        A dictionary-like object that contain the context for a request.
+    :type  request_context: dict
+    :return: A namedtuple that can be used as a connection pool key.
+    :rtype:  PoolKey
+    """
+    # Since we mutate the dictionary, make a copy first
+    context = request_context.copy()
+    context['scheme'] = context['scheme'].lower()
+    # context['host'] = context['host'].lower()
+
+    # These are both dictionaries and need to be transformed into frozensets
+    for key in ('headers', '_proxy_headers', '_socks_options'):
+        if key in context and context[key] is not None:
+            context[key] = frozenset(context[key].items())
+
+    # The socket_options key may be a list and needs to be transformed into a
+    # tuple.
+    socket_opts = context.get('socket_options')
+    if socket_opts is not None:
+        context['socket_options'] = tuple(socket_opts)
+
+    # Map the kwargs to the names in the namedtuple - this is necessary since
+    # namedtuples can't have fields starting with '_'.
+    for key in list(context.keys()):
+        context['key_' + key] = context.pop(key)
+
+    # Default to ``None`` for keys missing from the context
+    for field in key_class._fields:
+        if field not in context:
+            context[field] = None
+
+    return key_class(**context)
+
+urllib3.util.url.NORMALIZABLE_SCHEMES = (None,)
+urllib3.connectionpool.NORMALIZABLE_SCHEMES = (None,)
+urllib3.poolmanager.key_fn_by_scheme['http'] = functools.partial(_custom_key_normalizer,
+                                                                     urllib3.poolmanager.PoolKey)
+
+import requests
 
 GEOSERVER_HOST = os.getenv('GEOSERVER_HOST', "localhost")
 GEOSERVER_PORT = os.getenv('GEOSERVER_PORT', '8080')
@@ -179,21 +233,10 @@ def postToState(STATE_NAME, TYPE_NAME, VALUE_REFERENCE, POLYGON):
         "valueReference": VALUE_REFERENCE,
         "polygon": POLYGON
     }
-    # # set what your server accepts
-    # headers = {'Content-Type': 'application/json'}
-
-    # Set destination URL here
-    # url = f'http://{STATE_NAME.lower()}_gateway_1:5000/api/wfs/insertGeometry'
-
-    # r = requests.post(url, data=json.dumps(data), headers=headers)
-
-    url = f'http://gateway.{STATE_NAME}/api/wfs/insertGeometry'
+    
+    url = f'http://gateway.{STATE_NAME}:5000/api/wfs/insertGeometry'
     headers = {'Content-Type': 'application/json'}
     r = requests.post(url, data=json.dumps(data), headers=headers)
-    # http = urllib3.PoolManager()
-    # r = http.request('POST', url,
-    #                  headers=headers,
-    #                  body=json.dumps(data))
 
     return(r.text)
 
