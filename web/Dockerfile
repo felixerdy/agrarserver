@@ -1,4 +1,5 @@
-FROM node:alpine
+# building web application
+FROM node:10.15-alpine
 WORKDIR /usr/src/app
 
 ARG GATEWAY_HOST
@@ -14,9 +15,12 @@ RUN yarn install --production --pure-lockfile
 
 COPY src ./src
 
-RUN yarn global add serve
-
 RUN yarn build
-ENV PORT=1234
-EXPOSE 1234
-CMD ["serve", "dist"]
+
+
+# deploying web application
+FROM nginx:stable-alpine
+
+COPY --from=0 /usr/src/app/dist /usr/share/nginx/html/
+
+CMD ["nginx", "-g", "daemon off;"]
