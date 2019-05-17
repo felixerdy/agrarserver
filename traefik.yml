@@ -5,6 +5,7 @@ networks:
     external: true
 services:
   reverse-proxy:
+    container_name: agrarserver-reverse-proxy
     image: traefik # The official Traefik docker image
     command: --api --docker # Enables the web UI and tells Traefik to listen to docker
     ports:
