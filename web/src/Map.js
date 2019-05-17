@@ -49,11 +49,6 @@ const initMap = async () => {
     maxZoom: 19
   });
 
-  const openstreetmap = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  })
-
   const myState = L.tileLayer
     .wms(`http://gateway.${GATEWAY_HOST.split('.')[1].toLowerCase()}.localhost/api/wms/nettoflaechen?`, {
       layers: "felix:nettoflaechen",
@@ -80,8 +75,7 @@ const initMap = async () => {
   map.addControl(drawControl);
 
   const basemaps = {
-    "Light": light,
-    "OpenStreetMap": openstreetmap
+    "Light": light
   }
 
   addPolygonWMS().then(data => {
