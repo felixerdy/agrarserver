@@ -27,5 +27,9 @@ COMPOSE_PROJECT_NAME=<state_name> docker-compose up
 ### 💻 Use
 You can now visit e.g. http://web.Nordrhein-Westfalen.localhost and see all parcels. You can insert polygons or rectangles. Additionally, you can enable layers of other states and see its parcels when the according server is running. You can also insert geometries in other states.
 
+cAdvisor: http://cadvisor.nordrhein-westfalen.localhost/
+swagger: http://gateway.nordrhein-westfalen.localhost/api/ui/
+traefik: http://localhost:8000/dashboard/
+
 ### ⏫ Scale
 In order to scale your services you can run `COMPOSE_PROJECT_NAME=Nordrhein-Westfalen docker-compose scale gateway=5` to have 5 running instances of the gateway service.
